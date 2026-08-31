@@ -5,10 +5,13 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_DEFAULT_TIMEOUT=1200 \
-    PIP_RETRIES=10
+    PIP_RETRIES=10 \
+    PIP_REQUIRE_HASHES=0 \
+    PIP_NO_CACHE_DIR=1
 
 COPY requirements.txt ./
-RUN pip install --default-timeout=1200 --retries 10 --no-cache-dir -r requirements.txt
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    python -m pip install --default-timeout=1200 --retries 10 -r requirements.txt
 
 COPY . .
 
