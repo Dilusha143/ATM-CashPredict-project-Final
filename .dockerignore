@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env
+.venv/
+venv/
+node_modules/
+.git/
+.gitignore
+npm-debug.log*
+.DS_Store
+*.log
+flask_session/
+reports/
+branch_frontend/react_app/dist/

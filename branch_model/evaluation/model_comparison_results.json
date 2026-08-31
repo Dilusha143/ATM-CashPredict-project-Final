@@ -1,0 +1,54 @@
+{
+  "per_atm": {
+    "Airport ATM": {
+      "XGBoost": 44.72,
+      "RandomForest": 52.84,
+      "Prophet": 118.99,
+      "ARIMA": 196.85,
+      "winner": "XGBoost"
+    },
+    "Big Street ATM": {
+      "XGBoost": 33.31,
+      "RandomForest": 36.56,
+      "Prophet": 66.9,
+      "ARIMA": 66.35,
+      "winner": "XGBoost"
+    },
+    "Christ College ATM": {
+      "XGBoost": 46.78,
+      "RandomForest": 45.78,
+      "Prophet": 76.43,
+      "ARIMA": 64.53,
+      "winner": "RandomForest"
+    },
+    "KK Nagar ATM": {
+      "XGBoost": 56.15,
+      "RandomForest": 62.14,
+      "Prophet": 96.58,
+      "ARIMA": 86.95,
+      "winner": "XGBoost"
+    },
+    "Mount Road ATM": {
+      "XGBoost": 70.01,
+      "RandomForest": 69.23,
+      "Prophet": 179.31,
+      "ARIMA": 194.17,
+      "winner": "RandomForest"
+    }
+  },
+  "overall_average_smape": {
+    "XGBoost": 50.19,
+    "RandomForest": 53.31,
+    "Prophet": 107.64,
+    "ARIMA": 121.77
+  },
+  "overall_winner": "XGBoost",
+  "methodology": "80/20 chronological split per ATM, identical 32-feature set for XGBoost/RandomForest, Prophet fit on date+target only (its native univariate mode), auto_arima with seasonal period m=7 for ARIMA, sMAPE evaluation metric matching the existing project pipeline.",
+  "individual_atm_winners": {
+    "Airport ATM": "XGBoost",
+    "Big Street ATM": "XGBoost",
+    "Christ College ATM": "RandomForest",
+    "KK Nagar ATM": "XGBoost",
+    "Mount Road ATM": "RandomForest"
+  }
+}

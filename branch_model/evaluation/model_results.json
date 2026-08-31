@@ -1,0 +1,52 @@
+{
+  "Airport ATM": {
+    "mae": 86701.0,
+    "rmse": 130335.0,
+    "smape": 44.72,
+    "baseline_smape": 66.06,
+    "improvement": 32.3,
+    "train_rows": 1947,
+    "test_rows": 487,
+    "model": "XGBoost"
+  },
+  "Big Street ATM": {
+    "mae": 70887.0,
+    "rmse": 100118.0,
+    "smape": 33.31,
+    "baseline_smape": 40.46,
+    "improvement": 17.7,
+    "train_rows": 1947,
+    "test_rows": 487,
+    "model": "XGBoost"
+  },
+  "Christ College ATM": {
+    "mae": 189348.0,
+    "rmse": 262489.0,
+    "smape": 45.78,
+    "baseline_smape": 42.82,
+    "improvement": -6.9,
+    "train_rows": 1947,
+    "test_rows": 487,
+    "model": "Random Forest"
+  },
+  "KK Nagar ATM": {
+    "mae": 155907.0,
+    "rmse": 232514.0,
+    "smape": 56.15,
+    "baseline_smape": 58.82,
+    "improvement": 4.5,
+    "train_rows": 1947,
+    "test_rows": 487,
+    "model": "XGBoost"
+  },
+  "Mount Road ATM": {
+    "mae": 100838.0,
+    "rmse": 156121.0,
+    "smape": 69.23,
+    "baseline_smape": 59.3,
+    "improvement": -16.8,
+    "train_rows": 1947,
+    "test_rows": 487,
+    "model": "Random Forest"
+  }
+}

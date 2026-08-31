@@ -1,0 +1,28 @@
+# Environment secrets
+.env
+.env.*
+
+# Firebase / app secrets
+branch_backend/serviceAccountKey.json
+
+# Flask session files
+flask_session/
+
+# Node
+branch_frontend/react_app/node_modules/
+branch_frontend/react_app/dist/
+branch_frontend/react_app/build/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.pytest_cache/
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/

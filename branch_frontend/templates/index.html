@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATM CashPredict v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#F5C842;
+  --gold2:#E8A320;
+  --teal:#00D4AA;
+  --rose:#FF5E7D;
+  --blue:#4B9EFF;
+  --purple:#9B6DFF;
+  --bg:#080B12;
+  --bg2:#0E1220;
+  --bg3:#141926;
+  --surface:rgba(255,255,255,0.04);
+  --surface2:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.12);
+  --text:#F2F4FF;
+  --text2:#8B92B3;
+  --text3:#4A5170;
+  --ff-head:'Playfair Display',serif;
+  --ff-body:'DM Sans',sans-serif;
+  --ff-mono:'DM Mono',monospace;
+  --r:10px;--r-lg:16px;--r-xl:22px;
+}
+
+body{font-family:var(--ff-body);background:var(--bg);color:var(--text);font-size:15px;min-height:100vh;overflow-x:hidden;line-height:1.5}
+
+/* AMBIENT BACKGROUND */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 70% 60% at 15% -5%, rgba(75,158,255,0.12) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 50% at 85% 5%, rgba(155,109,255,0.10) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 60% at 85% 95%, rgba(0,212,170,0.08) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 40% at 5% 85%, rgba(245,200,66,0.07) 0%, transparent 65%);
+}
+
+/* GRID OVERLAY */
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+
+/* ═══════════════════════════════════════
+   LOGIN PAGE
+═══════════════════════════════════════ */
+#login_page{
+  position:fixed;inset:0;z-index:999;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);
+}
+
+.login-wrap{
+  position:relative;z-index:1;
+  display:grid;grid-template-columns:1fr 1fr;
+  width:min(900px,95vw);min-height:540px;
+  border-radius:var(--r-xl);
+  overflow:hidden;
+  border:1px solid var(--border2);
+  box-shadow:0 40px 120px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.04);
+}
+
+/* Left panel — branding */
+.login-brand{
+  background:linear-gradient(145deg, #0D1525 0%, #0A1020 100%);
+  padding:52px 48px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  position:relative;overflow:hidden;
+  border-right:1px solid var(--border);
+}
+.login-brand::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 30% 20%, rgba(75,158,255,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 80% 80%, rgba(155,109,255,0.12) 0%, transparent 60%);
+}
+.brand-top{position:relative;z-index:1}
+.brand-icon{
+  width:60px;height:60px;border-radius:16px;
+  background:linear-gradient(135deg, var(--blue), var(--purple));
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  margin-bottom:28px;
+  box-shadow:0 8px 32px rgba(75,158,255,0.35);
+}
+.brand-title{
+  font-family:var(--ff-head);font-size:36px;font-weight:800;
+  line-height:1.1;margin-bottom:14px;color:#fff;
+}
+.brand-title em{
+  font-style:normal;
+  background:linear-gradient(90deg, var(--gold), var(--gold2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.brand-desc{font-size:15px;color:var(--text2);line-height:1.65;max-width:280px}
+
+.brand-stats{position:relative;z-index:1;display:flex;flex-direction:column;gap:10px}
+.brand-stat{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:var(--r);
+}
+.brand-stat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.brand-stat-text{font-size:13px;color:var(--text2)}
+.brand-stat-val{margin-left:auto;font-family:var(--ff-mono);font-size:13px;font-weight:500;color:var(--text)}
+
+/* Right panel — form */
+.login-form-panel{
+  background:var(--bg2);
+  padding:52px 48px;
+  display:flex;flex-direction:column;justify-content:center;
+}
+.login-form-title{
+  font-size:26px;font-weight:700;color:var(--text);
+  margin-bottom:6px;letter-spacing:-.01em;
+}
+.login-form-sub{font-size:14px;color:var(--text2);margin-bottom:36px}
+
+.login-error{
+  background:rgba(255,94,125,0.1);border:1px solid rgba(255,94,125,0.3);
+  border-radius:var(--r);padding:12px 16px;
+  font-size:14px;color:var(--rose);margin-bottom:20px;display:none;
+}
+
+.lf-group{margin-bottom:20px}
+.lf-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.07em}
+.lf-input{
+  width:100%;padding:13px 16px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border2);
+  border-radius:var(--r);
+  font-family:var(--ff-body);font-size:15px;color:var(--text);
+  transition:all .2s;
+}
+.lf-input::placeholder{color:var(--text3)}
+.lf-input:focus{outline:none;border-color:var(--blue);background:rgba(75,158,255,0.06);box-shadow:0 0 0 3px rgba(75,158,255,0.12)}
+
+.login-submit{
+  width:100%;padding:14px;border:none;border-radius:var(--r);
+  font-family:var(--ff-body);font-size:16px;font-weight:700;
+  color:#fff;cursor:pointer;margin-top:8px;
+  background:linear-gradient(90deg, var(--blue) 0%, var(--purple) 100%);
+  transition:opacity .2s, transform .1s, box-shadow .2s;
+  box-shadow:0 4px 24px rgba(75,158,255,0.3);
+  letter-spacing:.01em;
+}
+.login-submit:hover{opacity:.9;box-shadow:0 6px 32px rgba(75,158,255,0.45)}
+.login-submit:active{transform:scale(.98)}
+.login-submit:disabled{opacity:.5;cursor:not-allowed}
+
+.login-creds{
+  margin-top:24px;padding:14px 16px;
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);
+  border-radius:var(--r);
+}
+.login-creds-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.login-cred-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.login-cred-row:last-child{margin-bottom:0}
+.login-cred-user{font-size:13px;color:var(--text2);font-weight:500}
+.login-cred-pass{font-family:var(--ff-mono);font-size:12px;color:var(--text3)}
+
+/* ═══════════════════════════════════════
+   MAIN APP
+═══════════════════════════════════════ */
+#main_app{display:none}
+
+/* TOPNAV */
+.topnav{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;height:64px;
+  background:rgba(8,11,18,0.88);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-brand{display:flex;align-items:center;gap:14px}
+.nav-logo{
+  width:38px;height:38px;border-radius:11px;
+  background:linear-gradient(135deg, var(--blue), var(--purple));
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  box-shadow:0 0 20px rgba(75,158,255,0.3);
+}
+.nav-title{font-family:var(--ff-head);font-size:19px;font-weight:800;color:var(--text)}
+.nav-title em{font-style:normal;color:var(--gold)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-chip{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:20px;padding:6px 14px;font-size:13px;color:var(--text2);
+  font-family:var(--ff-mono);
+}
+.nav-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite;box-shadow:0 0 8px var(--teal)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.nav-user{font-size:13px;color:var(--text2);font-family:var(--ff-mono);padding:6px 14px;background:var(--surface);border:1px solid var(--border);border-radius:20px}
+.btn-logout{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(255,94,125,0.08);border:1px solid rgba(255,94,125,0.2);
+  border-radius:20px;padding:6px 14px;font-size:13px;color:var(--rose);
+  cursor:pointer;font-family:var(--ff-body);font-weight:600;
+  transition:all .2s;
+}
+.btn-logout:hover{background:rgba(255,94,125,0.16);border-color:rgba(255,94,125,0.4)}
+
+/* SHELL */
+.shell{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:32px 28px}
+
+/* PAGE HEADER */
+.page-header{margin-bottom:32px}
+.page-title{font-family:var(--ff-head);font-size:38px;font-weight:800;line-height:1.1;margin-bottom:8px;color:var(--text)}
+.page-title em{font-style:normal;color:var(--gold)}
+.page-sub{font-size:15px;color:var(--text2);display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.page-sub-dot{width:4px;height:4px;border-radius:50%;background:var(--text3)}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:420px 1fr;gap:24px;align-items:start}
+
+/* CARDS */
+.card{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  padding:26px;margin-bottom:20px;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);
+}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.card-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3)}
+.card-badge{
+  font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;
+  background:rgba(245,200,66,0.12);color:var(--gold);
+  border:1px solid rgba(245,200,66,0.2);letter-spacing:.03em;
+}
+
+/* FORM ELEMENTS */
+.fg{margin-bottom:18px}
+.fg-label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px}
+.fg-input,.fg-select{
+  width:100%;padding:12px 15px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border2);
+  border-radius:var(--r);
+  font-family:var(--ff-body);font-size:15px;color:var(--text);
+  transition:all .2s;-webkit-appearance:none;appearance:none;
+}
+.fg-input:focus,.fg-select:focus{outline:none;border-color:var(--blue);background:rgba(75,158,255,0.06);box-shadow:0 0 0 3px rgba(75,158,255,0.1)}
+.fg-select option{background:#0E1220;color:var(--text)}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* TOGGLE */
+.toggle-wrap{display:flex;align-items:center;gap:14px;padding:13px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px}
+.toggle-text{font-size:15px;color:var(--text2);font-weight:500}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.t-slider{position:absolute;inset:0;background:rgba(255,255,255,0.1);border-radius:24px;cursor:pointer;transition:.2s;border:1px solid var(--border2)}
+.t-slider:before{content:'';position:absolute;width:18px;height:18px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+.toggle input:checked + .t-slider{background:linear-gradient(90deg,var(--blue),var(--teal));border-color:transparent;box-shadow:0 0 12px rgba(75,158,255,0.35)}
+.toggle input:checked + .t-slider:before{transform:translateX(20px)}
+
+/* PREDICT BTN */
+.btn-predict{
+  width:100%;padding:15px;border:none;border-radius:var(--r);
+  font-family:var(--ff-body);font-size:16px;font-weight:700;
+  color:#fff;cursor:pointer;
+  background:linear-gradient(90deg,var(--blue) 0%,var(--purple) 100%);
+  transition:all .2s;
+  box-shadow:0 4px 24px rgba(75,158,255,0.28);
+  letter-spacing:.01em;
+}
+.btn-predict:hover{box-shadow:0 6px 32px rgba(75,158,255,0.45);transform:translateY(-1px)}
+.btn-predict:active{transform:scale(.99)}
+
+/* SUMMARY STATS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.stat-tile{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:18px 16px;
+}
+.stat-tile-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:10px}
+.stat-tile-val{font-family:var(--ff-mono);font-size:22px;font-weight:500;color:var(--text);line-height:1}
+.stat-tile-val.hi{color:var(--teal)}
+.stat-tile-sub{font-size:13px;color:var(--text3);margin-top:6px}
+
+/* ATM RESULTS */
+.atm-list{display:flex;flex-direction:column;gap:10px}
+.atm-card{
+  padding:16px 18px;
+  background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r-lg);
+  transition:all .2s;
+}
+.atm-card:hover{border-color:rgba(75,158,255,0.25);background:var(--surface2);transform:translateX(2px)}
+.atm-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.atm-card-name{font-size:15px;font-weight:700;color:var(--text)}
+.atm-card-amounts{display:flex;align-items:center;gap:16px}
+.atm-main-val{font-family:var(--ff-mono);font-size:18px;font-weight:500}
+.atm-buf-val{font-family:var(--ff-mono);font-size:13px;color:var(--text3)}
+.atm-buf-label{font-size:11px;color:var(--text3);text-align:right}
+.bar-track{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.atm-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+
+/* ZONE BADGES */
+.zone{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
+.zone-commercial{background:rgba(75,158,255,0.12);color:#74b3ff;border:1px solid rgba(75,158,255,0.2)}
+.zone-transport{background:rgba(245,200,66,0.1);color:#f5c842;border:1px solid rgba(245,200,66,0.2)}
+.zone-residential{background:rgba(0,212,170,0.1);color:#00d4aa;border:1px solid rgba(0,212,170,0.2)}
+.zone-educational{background:rgba(255,94,125,0.1);color:#ff5e7d;border:1px solid rgba(255,94,125,0.2)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:22px;background:var(--surface);border-radius:12px;padding:4px}
+.tab{
+  flex:1;padding:9px;font-size:13px;font-weight:600;
+  color:var(--text3);background:none;border:none;border-radius:8px;
+  cursor:pointer;font-family:var(--ff-body);letter-spacing:.01em;transition:all .2s;
+}
+.tab.on{background:var(--bg3);color:var(--text);border:1px solid var(--border2);box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+.pane{display:none}
+.pane.on{display:block}
+
+/* CHART */
+.chart-wrap{position:relative;height:260px}
+
+/* CONFIDENCE BANDS */
+.band-list{display:flex;flex-direction:column;gap:14px}
+.band-item{display:grid;grid-template-columns:150px 1fr 90px;gap:14px;align-items:center}
+.band-name{font-size:14px;color:var(--text2);font-weight:600}
+.band-track{position:relative;height:20px;background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden}
+.band-bg{position:absolute;left:0;height:100%;border-radius:6px}
+.band-fg{position:absolute;height:100%;border-radius:6px}
+.band-num{font-family:var(--ff-mono);font-size:13px;color:var(--text2);text-align:right}
+
+/* ATM STATS GRID */
+.atm-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.atm-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;border-top-width:3px}
+.atm-stat-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.atm-stat-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.atm-stat-row span:first-child{color:var(--text3)}
+.atm-stat-row span:last-child{font-family:var(--ff-mono);font-weight:500;color:var(--text)}
+
+/* MISSING */
+.missing-pills{display:flex;flex-wrap:wrap;gap:6px;max-height:240px;overflow-y:auto}
+.mpill{font-family:var(--ff-mono);font-size:11px;padding:4px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text3)}
+
+/* EMPTY / LOADER */
+.empty{text-align:center;padding:56px 20px;color:var(--text3)}
+.empty-ico{font-size:48px;margin-bottom:16px;opacity:.6}
+.empty-t{font-size:17px;font-weight:700;color:var(--text2);margin-bottom:6px}
+.empty-s{font-size:14px}
+.loader{display:flex;align-items:center;justify-content:center;gap:12px;padding:48px;color:var(--text3);font-size:15px}
+.spin{width:22px;height:22px;border:2px solid rgba(255,255,255,0.07);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* INFO BOX */
+.info-box{display:flex;gap:10px;padding:12px 16px;border-radius:var(--r);font-size:14px;margin-bottom:16px;background:rgba(0,212,170,0.07);border:1px solid rgba(0,212,170,0.18);color:var(--teal)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:3px}
+
+/* COLORS */
+.c0{color:#74b3ff}.c1{color:#ff7daa}.c2{color:#00d4aa}.c3{color:#a3e635}.c4{color:#c4b5fd}
+.bg0{background:linear-gradient(90deg,#4B9EFF,#9B6DFF)}
+.bg1{background:linear-gradient(90deg,#FF5E7D,#FF9F1C)}
+.bg2c{background:linear-gradient(90deg,#00D4AA,#4B9EFF)}
+.bg3c{background:linear-gradient(90deg,#06D6A0,#00D4AA)}
+.bg4{background:linear-gradient(90deg,#9B6DFF,#4B9EFF)}
+.bnd0bg{background:rgba(75,158,255,0.15)} .bnd0fg{background:linear-gradient(90deg,#4B9EFF,#9B6DFF)}
+.bnd1bg{background:rgba(255,94,125,0.15)} .bnd1fg{background:linear-gradient(90deg,#FF5E7D,#FF9F1C)}
+.bnd2bg{background:rgba(0,212,170,0.12)}  .bnd2fg{background:linear-gradient(90deg,#00D4AA,#4B9EFF)}
+.bnd3bg{background:rgba(163,230,53,0.12)} .bnd3fg{background:linear-gradient(90deg,#a3e635,#00D4AA)}
+.bnd4bg{background:rgba(196,181,253,0.12)}.bnd4fg{background:linear-gradient(90deg,#c4b5fd,#4B9EFF)}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div id="login_page">
+  <div class="login-wrap">
+
+    <!-- Left branding panel -->
+    <div class="login-brand">
+      <div class="brand-top">
+        <div class="brand-icon">🏧</div>
+        <div class="brand-title">ATM<br><em>CashPredict</em></div>
+        <div class="brand-desc">AI-powered cash demand forecasting across your ATM network. Sign in to access predictions, analytics, and insights.</div>
+      </div>
+      <div class="brand-stats">
+        <div class="brand-stat">
+          <div class="brand-stat-dot" style="background:var(--teal)"></div>
+          <div class="brand-stat-text">ATMs monitored</div>
+          <div class="brand-stat-val">5 active</div>
+        </div>
+        <div class="brand-stat">
+          <div class="brand-stat-dot" style="background:var(--blue)"></div>
+          <div class="brand-stat-text">ML model</div>
+          <div class="brand-stat-val">XGBoost v2</div>
+        </div>
+        <div class="brand-stat">
+          <div class="brand-stat-dot" style="background:var(--gold)"></div>
+          <div class="brand-stat-text">Features used</div>
+          <div class="brand-stat-val">32 signals</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right form panel -->
+    <div class="login-form-panel">
+      <div class="login-form-title">Welcome back</div>
+      <div class="login-form-sub">Enter your credentials to access the dashboard</div>
+
+      <div class="login-error" id="login_error">⚠️ <span id="login_error_msg"></span></div>
+
+      <div class="lf-group">
+        <label class="lf-label">Username</label>
+        <input type="text" class="lf-input" id="login_username" placeholder="e.g. admin" autocomplete="username">
+      </div>
+      <div class="lf-group">
+        <label class="lf-label">Password</label>
+        <input type="password" class="lf-input" id="login_password" placeholder="Enter your password" autocomplete="current-password">
+      </div>
+      <button class="login-submit" id="login_btn" onclick="doLogin()">Sign In →</button>
+
+      <div class="login-creds">
+        <div class="login-creds-title">Demo Credentials</div>
+        <div class="login-cred-row"><span class="login-cred-user">admin</span><span class="login-cred-pass">admin123</span></div>
+        <div class="login-cred-row"><span class="login-cred-user">analyst</span><span class="login-cred-pass">analyst123</span></div>
+        <div class="login-cred-row"><span class="login-cred-user">viewer</span><span class="login-cred-pass">viewer123</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════ MAIN APP ═══════════ -->
+<div id="main_app">
+
+<nav class="topnav">
+  <div class="nav-brand">
+    <div class="nav-logo">🏧</div>
+    <div class="nav-title">ATM <em>CashPredict</em></div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-chip"><div class="nav-dot"></div>5 ATMs Live</div>
+    <div class="nav-chip">XGBoost v2</div>
+    <div class="nav-user" id="nav_username"></div>
+    <button class="btn-logout" onclick="doLogout()">⏻ Sign Out</button>
+  </div>
+</nav>
+
+<div class="shell">
+
+  <div class="page-header">
+    <div class="page-title">Cash Demand <em>Dashboard</em></div>
+    <div class="page-sub">
+      <span>Predict daily replenishment needs</span>
+      <span class="page-sub-dot"></span>
+      <span>Compare ATM performance</span>
+      <span class="page-sub-dot"></span>
+      <span>Analyse historical patterns</span>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- ── LEFT PANEL ── -->
+    <div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-label">Prediction Parameters</span>
+          <span class="card-badge">⚡ ML Powered</span>
+        </div>
+
+        <div class="fg">
+          <label class="fg-label">Target Date</label>
+          <input type="date" class="fg-input" id="pred_date">
+        </div>
+
+        <div class="fg-row">
+          <div class="fg">
+            <label class="fg-label">ATM Selection</label>
+            <select class="fg-select" id="atm_select">
+              <option value="all">All 5 ATMs</option>
+              {% for atm in atm_list %}
+              <option value="{{ atm }}">{{ atm }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fg-label">Holiday Override</label>
+            <select class="fg-select" id="is_holiday">
+              <option value="auto">Auto-detect</option>
+              <option value="1">Yes — Holiday</option>
+              <option value="0">No — Working Day</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="toggle-wrap">
+          <label class="toggle">
+            <input type="checkbox" id="salary_toggle">
+            <span class="t-slider"></span>
+          </label>
+          <span class="toggle-text">💰 Mark as salary day</span>
+        </div>
+
+        <button class="btn-predict" onclick="runPrediction()">🔮 Run Prediction</button>
+      </div>
+
+      <!-- Summary stats -->
+      <div id="summary_stats" style="display:none">
+        <div class="stats-row">
+          <div class="stat-tile">
+            <div class="stat-tile-label">Total Network</div>
+            <div class="stat-tile-val hi" id="stat_total">—</div>
+            <div class="stat-tile-sub">predicted load</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-tile-label">Peak ATM</div>
+            <div class="stat-tile-val" id="stat_peak" style="font-size:15px;margin-top:3px;color:var(--rose)">—</div>
+            <div class="stat-tile-sub" id="stat_peak_val">—</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-tile-label">Day Type</div>
+            <div class="stat-tile-val" id="stat_daytype" style="font-size:16px;margin-top:3px">—</div>
+            <div class="stat-tile-sub" id="stat_dow">—</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><span class="card-label">Confidence Bands — P50 / P90</span></div>
+          <div class="band-list" id="band_chart"></div>
+          <p style="font-size:12px;color:var(--text3);margin-top:16px">P50 = best estimate &nbsp;·&nbsp; P90 = with safety buffer</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT PANEL ── -->
+    <div>
+      <div class="card">
+        <div class="tabs">
+          <button class="tab on" onclick="switchTab('predictions',this)">Predictions</button>
+          <button class="tab" onclick="switchTab('chart',this)">History Chart</button>
+          <button class="tab" onclick="switchTab('atm_stats',this)">ATM Stats</button>
+          <button class="tab" onclick="switchTab('missing',this)">Missing Dates</button>
+        </div>
+
+        <!-- Predictions -->
+        <div class="pane on" id="tab_predictions">
+          <div id="pred_empty" class="empty">
+            <div class="empty-ico">📊</div>
+            <div class="empty-t">No prediction yet</div>
+            <div class="empty-s">Set the parameters on the left and click Run Prediction</div>
+          </div>
+          <div id="pred_loader" class="loader" style="display:none">
+            <div class="spin"></div> Running model…
+          </div>
+          <div class="atm-list" id="atm_results" style="display:none"></div>
+        </div>
+
+        <!-- Chart -->
+        <div class="pane" id="tab_chart">
+          <div class="fg" style="margin-bottom:18px">
+            <label class="fg-label">ATM</label>
+            <select class="fg-select" id="chart_atm" onchange="drawHistChart()" style="max-width:280px">
+              {% for atm in atm_list %}
+              <option value="{{ atm }}">{{ atm }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="chart-wrap"><canvas id="hist_chart"></canvas></div>
+        </div>
+
+        <!-- ATM Stats -->
+        <div class="pane" id="tab_atm_stats">
+          <div class="atm-stats-grid" id="atm_stats_grid"></div>
+        </div>
+
+        <!-- Missing Dates -->
+        <div class="pane" id="tab_missing">
+          <div class="info-box">
+            <span>ℹ️</span>
+            <span>731 missing dates detected and filled using forward-fill imputation across all 5 ATMs.</span>
+          </div>
+          <div class="fg" style="margin-bottom:16px">
+            <label class="fg-label">Filter by ATM</label>
+            <select class="fg-select" id="missing_atm" onchange="loadMissing()" style="max-width:300px">
+              {% for atm in atm_list %}
+              <option value="{{ atm }}">{{ atm }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="missing-pills" id="missing_list"><em style="color:var(--text3);font-size:14px">Loading…</em></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div><!-- /main_app -->
+
+<script>
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+let histInst = null;
+let TOKEN = null;
+
+// ── Login ──────────────────────────────────────────────────────
+document.getElementById('login_username').addEventListener('keydown',e=>e.key==='Enter'&&document.getElementById('login_password').focus());
+document.getElementById('login_password').addEventListener('keydown',e=>e.key==='Enter'&&doLogin());
+
+async function doLogin(){
+  const u=document.getElementById('login_username').value.trim();
+  const p=document.getElementById('login_password').value;
+  const err=document.getElementById('login_error');
+  const btn=document.getElementById('login_btn');
+  if(!u||!p){showErr('Please enter username and password.');return}
+  btn.disabled=true;btn.textContent='Signing in…';err.style.display='none';
+  try{
+    const r=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const d=await r.json();
+    if(!r.ok||d.error){showErr(d.error||'Invalid credentials.');btn.disabled=false;btn.textContent='Sign In →';return}
+    TOKEN=d.token;
+    document.getElementById('nav_username').textContent='👤 '+d.user.name;
+    document.getElementById('login_page').style.display='none';
+    document.getElementById('main_app').style.display='block';
+    document.getElementById('pred_date').value=new Date().toISOString().split('T')[0];
+    loadAtmStats();loadMissing();
+  }catch(e){showErr('Cannot connect to server. Is Flask running?');btn.disabled=false;btn.textContent='Sign In →';}
+}
+function showErr(msg){
+  document.getElementById('login_error_msg').textContent=msg;
+  document.getElementById('login_error').style.display='flex';
+}
+async function doLogout(){
+  try{await fetch('/logout',{method:'POST',headers:{'X-Auth-Token':TOKEN}})}catch(e){}
+  TOKEN=null;
+  document.getElementById('main_app').style.display='none';
+  document.getElementById('login_page').style.display='flex';
+  document.getElementById('login_password').value='';
+  document.getElementById('login_error').style.display='none';
+  const btn=document.getElementById('login_btn');btn.disabled=false;btn.textContent='Sign In →';
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+const fmt=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const fmtS=n=>n>=100000?'₹'+(n/100000).toFixed(1)+'L':'₹'+(n/1000).toFixed(0)+'K';
+const ah=()=>({'Content-Type':'application/json','X-Auth-Token':TOKEN});
+
+// ── Predict ────────────────────────────────────────────────────
+async function runPrediction(){
+  const dv=document.getElementById('pred_date').value;
+  if(!dv){alert('Please select a date');return}
+  document.getElementById('pred_empty').style.display='none';
+  document.getElementById('pred_loader').style.display='flex';
+  document.getElementById('atm_results').style.display='none';
+  document.getElementById('summary_stats').style.display='none';
+  try{
+    const r=await fetch('/predict',{method:'POST',headers:ah(),body:JSON.stringify({
+      pred_date:dv,is_holiday:document.getElementById('is_holiday').value,
+      atm_select:document.getElementById('atm_select').value,
+      is_salary:document.getElementById('salary_toggle').checked?'1':'0'
+    })});
+    const d=await r.json();
+    document.getElementById('pred_loader').style.display='none';
+    if(d.error){showPredErr(d.error);return}
+    renderResults(d);
+  }catch(e){document.getElementById('pred_loader').style.display='none';showPredErr(e.message)}
+}
+function showPredErr(msg){
+  const el=document.getElementById('pred_empty');
+  el.style.display='block';
+  el.innerHTML=`<div class="empty-ico">⚠️</div><div class="empty-t">Error</div><div class="empty-s" style="color:var(--rose)">${msg}</div>`;
+}
+function renderResults(data){
+  const ps=data.predictions;
+  const mx=Math.max(...ps.map(p=>p.predicted));
+  const tot=ps.reduce((s,p)=>s+p.predicted,0);
+  const peak=ps.reduce((a,b)=>a.predicted>b.predicted?a:b);
+  const d=new Date(data.date+'T12:00:00');
+
+  document.getElementById('atm_results').innerHTML=ps.map((p,i)=>{
+    const pct=Math.round(p.predicted/mx*100);
+    return `<div class="atm-card">
+      <div class="atm-card-top">
+        <div>
+          <div class="atm-card-name">${p.atm}</div>
+          <div style="margin-top:4px"><span class="zone zone-${p.zone}">${p.zone}</span></div>
+        </div>
+        <div class="atm-card-amounts">
+          <div>
+            <div class="atm-main-val c${i}">${fmtS(p.predicted)}</div>
+            <div style="font-size:11px;color:var(--text3);text-align:right;margin-top:2px">P50 estimate</div>
+          </div>
+          <div>
+            <div class="atm-buf-val">${fmtS(p.p90)}</div>
+            <div class="atm-buf-label">P90 buffer</div>
+          </div>
+        </div>
+      </div>
+      <div class="bar-track"><div class="bar-fill bg${i}" style="width:${pct}%"></div></div>
+      <div style="font-size:12px;color:var(--text3);margin-top:6px">${pct}% of network peak</div>
+    </div>`;
+  }).join('');
+  document.getElementById('atm_results').style.display='flex';
+
+  document.getElementById('stat_total').textContent=fmtS(tot);
+  document.getElementById('stat_peak').textContent=peak.atm.replace(' ATM','');
+  document.getElementById('stat_peak_val').textContent=fmt(peak.predicted);
+  document.getElementById('stat_daytype').textContent=data.is_holiday?'🔴 Holiday':'🟢 Working';
+  document.getElementById('stat_dow').textContent=DAYS[d.getDay()];
+  document.getElementById('summary_stats').style.display='block';
+
+  document.getElementById('band_chart').innerHTML=ps.map((p,i)=>{
+    const w50=Math.round(p.predicted/mx*100),w90=Math.round(p.p90/mx*100);
+    return `<div class="band-item">
+      <div class="band-name">${p.atm.replace(' ATM','')}</div>
+      <div class="band-track">
+        <div class="band-bg bnd${i}bg" style="width:${w90}%"></div>
+        <div class="band-fg bnd${i}fg" style="width:${w50}%"></div>
+      </div>
+      <div class="band-num">${fmtS(p.predicted)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Chart ──────────────────────────────────────────────────────
+async function drawHistChart(){
+  const atm=document.getElementById('chart_atm').value;
+  const ctx=document.getElementById('hist_chart').getContext('2d');
+  if(histInst)histInst.destroy();
+  try{
+    const r=await fetch(`/history?atm=${encodeURIComponent(atm)}&days=90`,{headers:{'X-Auth-Token':TOKEN}});
+    const d=await r.json();
+    const g=ctx.createLinearGradient(0,0,0,260);
+    g.addColorStop(0,'rgba(75,158,255,0.2)');g.addColorStop(1,'rgba(75,158,255,0)');
+    histInst=new Chart(ctx,{
+      type:'line',
+      data:{labels:d.dates,datasets:[{label:'Withdrawn (₹)',data:d.values,borderColor:'#4B9EFF',backgroundColor:g,borderWidth:2,pointRadius:0,fill:true,tension:0.4}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(14,18,32,0.95)',borderColor:'rgba(75,158,255,0.3)',borderWidth:1,titleColor:'#74b3ff',bodyColor:'#F2F4FF',callbacks:{label:c=>'₹'+Math.round(c.raw).toLocaleString('en-IN')}}},
+        scales:{
+          x:{ticks:{maxTicksLimit:8,font:{size:12,family:'DM Mono'},color:'#4A5170'},grid:{color:'rgba(255,255,255,0.03)',drawBorder:false}},
+          y:{ticks:{callback:v=>'₹'+(v/100000).toFixed(1)+'L',font:{size:12,family:'DM Mono'},color:'#4A5170'},grid:{color:'rgba(255,255,255,0.05)',drawBorder:false}}
+        }}
+    });
+  }catch(e){console.log('History not available')}
+}
+
+// ── ATM Stats ──────────────────────────────────────────────────
+async function loadAtmStats(){
+  try{
+    const r=await fetch('/atm_stats',{headers:{'X-Auth-Token':TOKEN}});
+    const d=await r.json();
+    const cs=['var(--blue)','var(--rose)','var(--teal)','#a3e635','var(--purple)'];
+    document.getElementById('atm_stats_grid').innerHTML=Object.entries(d).map(([atm,s],i)=>`
+      <div class="atm-stat-card" style="border-top-color:${cs[i]}">
+        <div class="atm-stat-name">${atm} <span class="zone zone-${s.zone}" style="float:right">${s.zone}</span></div>
+        <div class="atm-stat-row"><span>Avg daily</span><span style="color:${cs[i]}">${fmtS(s.mean)}</span></div>
+        <div class="atm-stat-row"><span>Historical max</span><span>${fmtS(s.max)}</span></div>
+        <div class="atm-stat-row"><span>Missing dates filled</span><span>${s.missing}</span></div>
+        <div class="atm-stat-row"><span>Model sMAPE</span><span>${s.smape}%</span></div>
+        <div class="atm-stat-row"><span>Improvement</span><span style="color:${s.improvement>0?'var(--teal)':'var(--rose)'}">${s.improvement>0?'▲ +':'▼ '}${Math.abs(s.improvement).toFixed(1)}%</span></div>
+      </div>`).join('');
+  }catch(e){}
+}
+
+// ── Missing Dates ──────────────────────────────────────────────
+async function loadMissing(){
+  const atm=document.getElementById('missing_atm').value;
+  try{
+    const r=await fetch(`/missing_dates?atm=${encodeURIComponent(atm)}`,{headers:{'X-Auth-Token':TOKEN}});
+    const d=await r.json();
+    document.getElementById('missing_list').innerHTML=d.dates.map(x=>`<span class="mpill">${x}</span>`).join('');
+  }catch(e){document.getElementById('missing_list').innerHTML='<em style="color:var(--text3);font-size:14px">Could not load.</em>'}
+}
+
+// ── Tab switch ─────────────────────────────────────────────────
+function switchTab(id,btn){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('tab_'+id).classList.add('on');
+  btn.classList.add('on');
+  if(id==='chart')drawHistChart();
+}
+</script>
+</body>
+</html>
